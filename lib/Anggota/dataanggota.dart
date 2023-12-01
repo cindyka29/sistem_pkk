@@ -1,14 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
-import 'Anggota_Models.dart';
-import 'DatabaseHelper.dart';
+class Anggota {
+  String nama;
+  String jabatan;
+  String pokja;
+  File? image;
+  bool status;
 
-void main() {
-  runApp(Anggota());
+  Anggota({
+    required this.nama,
+    required this.jabatan,
+    required this.pokja,
+    this.image,
+    this.status = true,
+  });
 }
 
-class Anggota extends StatelessWidget {
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -28,31 +42,163 @@ class AnggotaList extends StatefulWidget {
 }
 
 class _AnggotaListState extends State<AnggotaList> {
-  // Buat sebuah Map untuk menyimpan status hadir setiap anggota
-  Map<String, bool> hadirAnggota = {};
+  List<Anggota> _anggotaList = [
+    Anggota(
+      nama: 'CARMELINDA CARVALHO',
+      jabatan: 'KETUA',
+      pokja: 'POKJA I',
+      image: null,
+      status: true,
+    ),
+    // Tambahkan anggota lainnya
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadHadirAnggota(); // Memuat data anggota yang sudah disimpan
-  }
+  List<String> _jabatanList = ['KETUA', 'WAKIL', 'SEKRETARIS', 'ANGGOTA'];
+  List<String> _pokjaList = ['POKJA I', 'POKJA II', 'POKJA III'];
 
-  Future<void> _loadHadirAnggota() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      hadirAnggota = prefs.getString('hadirAnggota') != null
-          ? Map<String, bool>.from(
-              Map<String, dynamic>.from(
-                prefs.getString('hadirAnggota')! as Map,
+  void _tambahAnggotaDialog() {
+    TextEditingController _namaController = TextEditingController();
+    String _selectedJabatan = _jabatanList[0];
+    String _selectedPokja = _pokjaList[0];
+    File? _selectedImage;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        bool _status = true; // Default status saat menambah anggota
+
+        return AlertDialog(
+          title: Text('Tambah Anggota'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _namaController,
+                decoration: InputDecoration(labelText: 'Nama'),
               ),
-            )
-          : {};
-    });
+              DropdownButtonFormField<String>(
+                value: _selectedJabatan,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedJabatan = newValue!;
+                  });
+                },
+                items: _jabatanList.map((String jabatan) {
+                  return DropdownMenuItem<String>(
+                    value: jabatan,
+                    child: Text(jabatan),
+                  );
+                }).toList(),
+                decoration: InputDecoration(labelText: 'Jabatan'),
+              ),
+              DropdownButtonFormField<String>(
+                value: _selectedPokja,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedPokja = newValue!;
+                  });
+                },
+                items: _pokjaList.map((String pokja) {
+                  return DropdownMenuItem<String>(
+                    value: pokja,
+                    child: Text(pokja),
+                  );
+                }).toList(),
+                decoration: InputDecoration(labelText: 'POKJA'),
+              ),
+              Row(
+                children: [
+                  Text('Status Aktif:'),
+                  Switch(
+                    value: _status,
+                    onChanged: (value) {
+                      setState(() {
+                        _status = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              _selectedImage != null
+                  ? Image.file(
+                      _selectedImage!,
+                      height: 100,
+                      width: 100,
+                      fit: BoxFit.cover,
+                    )
+                  : Text('Pilih gambar'),
+              ElevatedButton(
+                onPressed: () async {
+                  final imagePicker = ImagePicker();
+                  final XFile? image =
+                      await imagePicker.pickImage(source: ImageSource.gallery);
+
+                  if (image != null) {
+                    setState(() {
+                      _selectedImage = File(image.path);
+                    });
+                  }
+                },
+                child: Text('Pilih Gambar'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                final String nama = _namaController.text;
+                if (nama.isNotEmpty) {
+                  final Anggota newAnggota = Anggota(
+                    nama: nama,
+                    jabatan: _selectedJabatan,
+                    pokja: _selectedPokja,
+                    image: _selectedImage,
+                    status: _status,
+                  );
+                  _tambahAnggota(newAnggota);
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text('Simpan'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Batal'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  Future<void> _saveHadirAnggota() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('hadirAnggota', hadirAnggota.toString());
+  void _hapusAnggota(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Hapus Anggota'),
+          content: Text('Apakah Anda yakin ingin menghapus anggota ini?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _anggotaList.removeAt(index);
+                Navigator.of(context).pop();
+              },
+              child: Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -61,228 +207,224 @@ class _AnggotaListState extends State<AnggotaList> {
       appBar: AppBar(
         title: Text('Susunan Keanggotaan PKK'),
       ),
-      body: ListView(
-        children: [
-          _buildSection(
-              'Penghayatan dan Pengamalan Pancasila dan Gotong Royong', [
-            _buildAnggota('POKJA I', 'KETUA', 'CARMELINDA CARVALHO'),
-            _buildAnggota('POKJA I', 'WAKIL', 'LUH PUTU WARINI'),
-            _buildAnggota('POKJA I', 'SEKRETARIS', 'MADE SUSARI DEWI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'NI LUH KARONI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'LUH SRI NADI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'PUTU BUDARI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'MADE SUASTINI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'KADEK SINTAWATI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'LUH SUKERINI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'LUH DARMIYANTI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'NYOMAN WILIANI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'LUH SUKARMIADI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'KADEK ARYANTINI'),
-            _buildAnggota('POKJA I', 'ANGGOTA', 'KOMANG DARINI'),
-          ]),
-          _buildSection(
-              'Pendidikan, Keterampilan, dan Pengembangan Kehidupan Berkoperasi',
-              [
-                _buildAnggota('POKJA II', 'KETUA', 'I KETUT MEGAWATI'),
-                _buildAnggota('POKJA II', 'WAKIL', 'KADEK SUPARTI'),
-                _buildAnggota('POKJA II', 'SEKRETARIS', 'NI MADE JERO'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'PUTU ENI ARWATI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'NI MADE WARTINI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'NI KOMANG SUKERTI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'DESAK SULASTRI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'PUTU KAWI'),
-                _buildAnggota(
-                    'POKJA II', 'ANGGOTA', 'KETUT ESTI SETIA PURNAMA DEWI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'MADE DWITTARI PANDE'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'NI KOMANG BUDIKERTIASIH'),
-                _buildAnggota(
-                    'POKJA II', 'ANGGOTA', 'NI LUH PUTU ERNA PURNAMA WARDANI'),
-                _buildAnggota('POKJA II', 'ANGGOTA', 'LUH MINI'),
-              ]),
-          _buildSection(
-              'Pangan, Sandang, Perumahan, dan Tata Laksana Rumah Tangga', [
-            _buildAnggota('POKJA III', 'KETUA', 'NI LUH DURIANI PANDE'),
-            _buildAnggota('POKJA III', 'WAKIL', 'LUH SWINADI'),
-            _buildAnggota('POKJA III', 'SEKRETARIS', 'KOMANG DESY ARIANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'MADE BUDIAYU'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KADEK PURNAMI'),
-            _buildAnggota(
-                'POKJA III', 'ANGGOTA', 'NI KADEK ELFIRA MEIROSA PERASI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KETUT KARTIKA'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KETUT EVIN HANDAYANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KOMANG ARIANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KETUT SUANDAYANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'JRO NYOMAN SUDARBI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KADEK DEWI INDRAYANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KETUT SETIA WATI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'GUSTI AYU DEWI PUJAYANI'),
-            _buildAnggota('POKJA III', 'ANGGOTA', 'KOMANG SITI SURYANI'),
-          ]),
-          _buildSection(
-              'Kesehatan, Kelestarian Lingkungan Hidup, dan Perencanaan Kesehatan',
-              [
-                _buildAnggota('POKJA IV', 'KETUA', 'LUH ALIT MAHENDRA WATI'),
-                _buildAnggota('POKJA IV', 'WAKIL', 'KADEK SUARTINI'),
-                _buildAnggota('POKJA IV', 'SEKRETARIS', 'KOMANG INTAN SURYANI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KADEK DESY ARISANDI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'LUH ANITA'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'LUH BUDIARTINI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KOMANG SUARDENI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KOMANG ASRINI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'GUSTI AYU KETUT ARMENI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'NYOMAN SARIANI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'WAYAN KARINI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'NI KADEK RASMINI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KOMANG ARDIANI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'LUH JULIANTINI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KADEK DESI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'LUH SETIANI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KETUT SUANDA YANI'),
-                _buildAnggota('POKJA IV', 'ANGGOTA', 'KADEK SUARMINI'),
-              ]),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Buka halaman penyimpanan data saat tombol "Simpan" ditekan
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SimpanDataPage(
-                hadirAnggota: hadirAnggota,
-                onSave: _saveHadirAnggota,
-              ),
+      body: ListView.builder(
+        itemCount: _anggotaList.length,
+        itemBuilder: (context, index) {
+          return Dismissible(
+            key: Key(_anggotaList[index].nama),
+            onDismissed: (direction) {
+              _hapusAnggota(index);
+            },
+            background: Container(
+              color: Colors.red,
+              child: Icon(Icons.delete, color: Colors.white),
             ),
+            child: _buildAnggotaItem(_anggotaList[index], index),
           );
         },
-        child: Icon(Icons.save),
-        backgroundColor: Colors.pink,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _tambahAnggotaDialog,
+        child: Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildSection(String title, List<Widget> anggotaList) {
-    return Padding(
-      padding: const EdgeInsets.all(
-          8.0), // Atur padding di sini sesuai kebutuhan Anda
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAnggotaItem(Anggota anggota, int index) {
+    return ListTile(
+      title: Text(
+        anggota.jabatan,
+        style: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(anggota.nama),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueGrey, // Ganti warna sesuai keinginan Anda
-            ),
+          IconButton(
+            icon:
+                anggota.status ? Icon(Icons.check) : Icon(Icons.close_rounded),
+            onPressed: () {
+              setState(() {
+                anggota.status = !anggota.status;
+              });
+            },
           ),
-          Column(
-            children: anggotaList,
-          ),
+          // Tambahkan widget lain di sini jika diperlukan
         ],
       ),
+      leading: anggota.image != null
+          ? CircleAvatar(
+              radius: 30,
+              backgroundImage: FileImage(anggota.image!),
+            )
+          : CircleAvatar(
+              radius: 30,
+              child: Text(anggota.nama[
+                  0]), // Menampilkan huruf pertama nama jika tidak ada gambar
+            ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => EditAnggota(
+              anggota: anggota,
+              onSave: (editedAnggota) {
+                _editAnggota(editedAnggota, index);
+              },
+              jabatanList: _jabatanList,
+              pokjaList: _pokjaList,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildAnggota(String pokja, String jabatan, String nama) {
-    // Dapatkan status hadir dan tidak hadir dari Map berdasarkan nama anggota
-    bool hadir = hadirAnggota[nama] ?? false;
-    bool tidakHadir = !hadir;
+  void _tambahAnggota(Anggota anggota) {
+    setState(() {
+      _anggotaList.add(anggota);
+    });
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ListTile(
-        title: Text(
-          jabatan,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14, // Ganti ukuran font sesuai keinginan Anda
-          ),
-        ),
-        subtitle: Row(
-          children: [
-            Text(
-              nama,
-              style: TextStyle(
-                fontSize: 10, // Ganti ukuran font sesuai keinginan Anda
-              ),
-            ),
-            SizedBox(width: 10),
-            Checkbox(
-              value: hadir,
-              onChanged: (bool? newValue) {
-                // Saat checkbox hadir diubah, panggil setState untuk memperbarui UI
-                setState(() {
-                  hadirAnggota[nama] = newValue ?? false; // Simpan status hadir
-                });
-              },
-            ),
-            Text("Hadir"),
-            SizedBox(width: 12),
-            Checkbox(
-              value: tidakHadir,
-              onChanged: (bool? newValue) {
-                // Saat checkbox tidak hadir diubah, panggil setState untuk memperbarui UI
-                setState(() {
-                  hadirAnggota[nama] = !newValue!; // Simpan status tidak hadir
-                });
-              },
-            ),
-            Text("Tidak Hadir"),
-          ],
-        ),
-        trailing: Text(
-          pokja,
-          style: TextStyle(
-            fontSize: 12, // Ganti ukuran font sesuai keinginan Anda
-          ),
-        ),
-      ),
-    );
+  void _editAnggota(Anggota editedAnggota, int index) {
+    setState(() {
+      _anggotaList[index] = editedAnggota;
+    });
   }
 }
 
-class SimpanDataPage extends StatelessWidget {
-  final Map<String, bool> hadirAnggota;
-  final Function onSave;
+class EditAnggota extends StatefulWidget {
+  final Anggota? anggota;
+  final Function(Anggota) onSave;
+  final List<String> jabatanList;
+  final List<String> pokjaList;
 
-  SimpanDataPage({
-    required this.hadirAnggota,
+  EditAnggota({
+    this.anggota,
     required this.onSave,
+    required this.jabatanList,
+    required this.pokjaList,
   });
+
+  @override
+  _EditAnggotaState createState() => _EditAnggotaState();
+}
+
+class _EditAnggotaState extends State<EditAnggota> {
+  TextEditingController _namaController = TextEditingController();
+  String _selectedJabatan = '';
+  String _selectedPokja = '';
+  bool _isFormValid = true;
+  bool _status = true; // Status aktif atau tidak aktif
+
+  void _validateForm() {
+    final String nama = _namaController.text;
+
+    if (nama.isEmpty) {
+      setState(() {
+        _isFormValid = false;
+      });
+    } else {
+      setState(() {
+        _isFormValid = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.anggota != null) {
+      _namaController.text = widget.anggota!.nama;
+      _selectedJabatan = widget.anggota!.jabatan;
+      _selectedPokja = widget.anggota!.pokja;
+      _status = widget.anggota!.status;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Simpan Data'),
+        title: Text('Edit Anggota'),
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Data Anggota yang Disimpan:',
-              style: TextStyle(fontSize: 20),
-            ),
-            SizedBox(height: 16),
-            // Tampilkan data anggota yang disimpan di sini
-            Column(
-              children: hadirAnggota.entries
-                  .map(
-                    (entry) => ListTile(
-                      title: Text(entry.key),
-                      subtitle: Text(entry.value ? 'Hadir' : 'Tidak Hadir'),
-                    ),
-                  )
-                  .toList(),
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                onSave(); // Simpan data ke SharedPreferences
-                Navigator.pop(context); // Kembali ke halaman sebelumnya
+            TextFormField(
+              controller: _namaController,
+              decoration: InputDecoration(labelText: 'Nama'),
+              onChanged: (value) {
+                _validateForm();
               },
+            ),
+            DropdownButtonFormField<String>(
+              value: _selectedJabatan,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedJabatan = newValue!;
+                });
+              },
+              items: widget.jabatanList.map((String jabatan) {
+                return DropdownMenuItem<String>(
+                  value: jabatan,
+                  child: Text(jabatan),
+                );
+              }).toList(),
+              decoration: InputDecoration(labelText: 'Jabatan'),
+            ),
+            DropdownButtonFormField<String>(
+              value: _selectedPokja,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedPokja = newValue!;
+                });
+              },
+              items: widget.pokjaList.map((String pokja) {
+                return DropdownMenuItem<String>(
+                  value: pokja,
+                  child: Text(pokja),
+                );
+              }).toList(),
+              decoration: InputDecoration(labelText: 'POKJA'),
+            ),
+            Row(
+              children: [
+                Text('Status Aktif:'),
+                Switch(
+                  value: _status,
+                  onChanged: (value) {
+                    setState(() {
+                      _status = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            if (!_isFormValid)
+              Text(
+                'Nama tidak boleh kosong',
+                style: TextStyle(color: Colors.red),
+              ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _isFormValid
+                  ? () {
+                      final String nama = _namaController.text;
+                      final Anggota editedAnggota = Anggota(
+                        nama: nama,
+                        jabatan: _selectedJabatan,
+                        pokja: _selectedPokja,
+                        image: null,
+                        status: _status,
+                      );
+
+                      widget.onSave(editedAnggota);
+                      Navigator.pop(context);
+                    }
+                  : null,
               child: Text('Simpan'),
             ),
           ],

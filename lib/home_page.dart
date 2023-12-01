@@ -2,17 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'Anggota/dataanggota.dart';
-import 'package:kebaya_boutiq/kalender.dart';
 import 'package:kebaya_boutiq/pages/absensi.dart';
-import 'package:kebaya_boutiq/visimisi.dart';
-import 'edit_profile.dart';
-import 'keuangan/Iuran_Models.dart';
+import 'Kalender/kalender.dart';
+import 'Kas/inputKasPage.dart';
 import 'keuangan/inputiuran.dart';
-import 'keuangan/iuran.dart';
-import 'logout_page.dart';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: HomePage(),
+    );
+  }
+}
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -20,30 +29,65 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController searchController = TextEditingController();
-  void onSearchPressed() {
-    String searchText = searchController.text;
-    // Lakukan sesuatu dengan searchText, misalnya navigasi ke hasil pencarian
-    print('Searching for: $searchText');
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
-        onTap: (int index) {
-          if (index == 1) {
-            // Pindah ke halaman Transaksi
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ProfilePage()),
-            );
-          }
-        },
+      appBar: AppBar(
+        backgroundColor: Color.fromARGB(255, 215, 103, 150),
+        title: Text('Sistem PKK Desa Kubutambahan'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            UserAccountsDrawerHeader(
+              decoration:
+                  BoxDecoration(color: Color.fromARGB(255, 215, 103, 150)),
+              accountName: Text('Ni Made Budi Ayu'),
+              accountEmail: Text('budiayu123@gmail.com'),
+              currentAccountPicture: GestureDetector(
+                onTap: () {
+                  // Navigasi ke halaman profil
+                },
+                child: CircleAvatar(
+                  backgroundImage: AssetImage('assets/sekretaris.jpg'),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.people_alt_outlined),
+              title: Text(
+                'Profile',
+                style: TextStyle(color: Colors.black),
+              ),
+              onTap: () {
+                // Navigasi ke halaman profil
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.volunteer_activism_outlined),
+              title: Text(
+                'Visi Misi',
+                style: TextStyle(color: Colors.black),
+              ),
+              onTap: () {
+                // Navigasi ke halaman visi misi
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text(
+                'Logout',
+                style: TextStyle(color: Colors.black),
+              ),
+              onTap: () {
+                // Navigasi ke halaman logout
+              },
+            ),
+          ],
+        ),
       ),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -148,13 +192,23 @@ class _HomePageState extends State<HomePage> {
                       },
                     ),
                     Category(
-                      imagePath: "assets/passbook.png",
+                      imagePath: "assets/save-time.png",
                       title: "Iuran",
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => InputIuranPage(),
+                            builder: (context) => InputIuranPage(
+                                // iuran: Iuran(
+                                //   jenisKegiatan: '',
+                                //   nama: '',
+                                //   nominalUang: 0, // Isi dengan nilai yang sesuai
+                                //   buktiPembayaranPath: '',
+                                //   // Isi properti-properti objek Iuran sesuai dengan kebutuhan
+                                // ),
+                                // totalKeuangan:
+                                //     0.0, // Gantilah dengan nilai yang sesuai
+                                ),
                           ),
                         );
                       },
@@ -178,11 +232,19 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Calendar(
-                                // catatan: '',
-                                // judul: '',
-                                // tanggal: null,
-                                ),
+                            builder: (context) => Calendar(),
+                          ),
+                        );
+                      },
+                    ),
+                    Category(
+                      imagePath: "assets/passbook.png",
+                      title: "Kas",
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InputKasPage(),
                           ),
                         );
                       },
@@ -190,49 +252,35 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: Text(
-                  "Kepengurusan",
-                  style: GoogleFonts.montserrat(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-
               // Carousel section
               CarouselSlider(
                 items: [
                   PlantShop(
-                    imagePath: "assets/pkk.jpeg",
+                    imagePath: "assets/ketua.jpeg",
                     nameShop: "Ketua",
                     onTap: () {
-                      // Navigasi ke halaman AnggotaList saat item diklik.
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AnggotaList()),
-                      );
+                      // Navigasi ke halaman anggota saat item diklik.
+                    },
+                  ),
+                  PlantShop(
+                    imagePath: "assets/wakil.jpeg",
+                    nameShop: "Wakil",
+                    onTap: () {
+                      // Navigasi ke halaman anggota saat item diklik.
                     },
                   ),
                   PlantShop(
                     imagePath: "assets/sekretaris.jpg",
                     nameShop: "Sekretaris",
                     onTap: () {
-                      // Navigasi ke halaman AnggotaList saat item diklik.
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AnggotaList()),
-                      );
+                      // Navigasi ke halaman anggota saat item diklik.
                     },
                   ),
                   PlantShop(
-                    imagePath: "assets/PKK1.jpg",
+                    imagePath: "assets/bendahara.jpeg",
                     nameShop: "Bendahara",
                     onTap: () {
-                      // Navigasi ke halaman AnggotaList saat item diklik.
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => AnggotaList()),
-                      );
+                      // Navigasi ke halaman anggota saat item diklik.
                     },
                   ),
                 ],
@@ -243,74 +291,17 @@ class _HomePageState extends State<HomePage> {
                   enlargeCenterPage: true,
                 ),
               ),
-
-              // Rest of your content
             ],
           ),
         ),
       ),
-      appBar: AppBar(
-        backgroundColor: Color.fromARGB(255, 215, 103, 150),
-        title: Text('Sistem PKK Desa Kubutambahan'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              decoration:
-                  BoxDecoration(color: Color.fromARGB(255, 215, 103, 150)),
-              accountName: Text('Ni Made Budi Ayu'),
-              accountEmail: Text('budiayu123@gmail.com'),
-              currentAccountPicture: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MyEdit()),
-                  );
-                },
-                child: CircleAvatar(
-                  backgroundImage: AssetImage('assets/logo google.png'),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.people_alt_outlined),
-              title: Text(
-                'Profile',
-                style: TextStyle(color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: ((context) => ProfilePage())));
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.volunteer_activism_outlined),
-              title: Text(
-                'Visi Misi',
-                style: TextStyle(color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: ((context) => VisiMisiPage())));
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text(
-                'Logout',
-                style: TextStyle(color: Colors.black),
-              ),
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: ((context) => LogoutPage())));
-              },
-            ),
-          ],
-        ),
-      ),
     );
+  }
+
+  void onSearchPressed() {
+    String searchText = searchController.text;
+    // Lakukan sesuatu dengan searchText, misalnya navigasi ke hasil pencarian
+    print('Searching for: $searchText');
   }
 }
 
@@ -385,7 +376,7 @@ class Category extends StatelessWidget {
   final VoidCallback? onPressed;
 
   const Category({
-    super.key,
+    Key? key,
     required this.imagePath,
     required this.title,
     required this.onPressed,

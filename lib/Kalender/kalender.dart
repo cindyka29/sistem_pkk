@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:kebaya_boutiq/keuangan/iuran.dart';
-import 'package:kebaya_boutiq/pages/inputabsensi.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:kebaya_boutiq/home_page.dart';
-
-import 'keuangan/inputiuran.dart';
+import 'package:kebaya_boutiq/keuangan/inputiuran.dart';
+import 'package:kebaya_boutiq/pages/inputabsensi.dart';
+import '../pages/Absensi_Models.dart';
 
 void main() {
   runApp(Calendar());
@@ -23,24 +22,6 @@ class Calendar extends StatelessWidget {
 
 class CalendarApp extends StatefulWidget {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Kalender Kegiatan'),
-          backgroundColor: Colors.pink,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
   _CalendarAppState createState() => _CalendarAppState();
 }
 
@@ -65,13 +46,20 @@ class _CalendarAppState extends State<CalendarApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Kalender dengan Catatan'),
+        title: Text(
+          'Kalender dengan Catatan',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: Colors.pink,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => HomePage()));
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
           },
         ),
       ),
@@ -129,11 +117,12 @@ class _CalendarAppState extends State<CalendarApp> {
         return ListTile(
           title: Row(
             children: [
-              Icon(Icons.edit, color: Colors.blue), // Icon edit
-              SizedBox(width: 8), // Spasi antara icon edit dan judul
+              Icon(Icons.edit, color: Colors.pink),
+              SizedBox(width: 8),
               Text(
                 event.title,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.pink),
               ),
             ],
           ),
@@ -142,13 +131,15 @@ class _CalendarAppState extends State<CalendarApp> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.calendar_today), // Icon tanggal (opsional)
-                  SizedBox(width: 8), // Spasi antara icon tanggal dan tanggal
-                  Text(DateFormat('dd/MM/yyyy')
-                      .format(event.date)), // Tampilkan tanggal
+                  Icon(Icons.calendar_today),
+                  SizedBox(width: 8),
+                  Text(DateFormat('dd/MM/yyyy').format(event.date)),
                 ],
               ),
-              Text(event.note),
+              Text(
+                event.note,
+                style: TextStyle(color: Colors.pink),
+              ),
             ],
           ),
           trailing: Row(
@@ -162,12 +153,18 @@ class _CalendarAppState extends State<CalendarApp> {
                     MaterialPageRoute(
                       builder: (context) => InputAbsensiPage(
                         kegiatan: '',
-                        kegiatanController:
-                            TextEditingController(), // Inisialisasi dengan TextEditingController()
-                        selectedDate: DateTime
-                            .now(), // Inisialisasi dengan DateTime.now()
-                        tanggalController:
-                            TextEditingController(), // Inisialisasi dengan TextEditingController()
+                        kegiatanController: TextEditingController(),
+                        selectedDate: DateTime.now(),
+                        tanggalController: TextEditingController(),
+                        absensi: Absensi(
+                          nama: 'Nama Anggota',
+                          jabatan: 'Jabatan',
+                          hadir: '',
+                          tidakHadir: '',
+                          tanggal: DateTime.now(),
+                          kegiatan: '',
+                          alasanTidakHadir: '',
+                        ),
                       ),
                     ),
                   );
@@ -179,15 +176,7 @@ class _CalendarAppState extends State<CalendarApp> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => InputIuranPage(
-                          // kegiatan: '',
-                          // kegiatanController:
-                          //     TextEditingController(), // Inisialisasi dengan TextEditingController()
-                          // selectedDate: DateTime
-                          //     .now(), // Inisialisasi dengan DateTime.now()
-                          // tanggalController:
-                          //     TextEditingController(), // Inisialisasi dengan TextEditingController()
-                          ),
+                      builder: (context) => InputIuranPage(),
                     ),
                   );
                 },
@@ -226,11 +215,23 @@ class _CalendarAppState extends State<CalendarApp> {
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'Judul'),
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(
+                    labelText: 'Title',
+                    labelStyle: TextStyle(color: Colors.pink),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.pink, width: 2.0),
+                    )),
               ),
               TextField(
                 controller: noteController,
-                decoration: InputDecoration(labelText: 'Catatan'),
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(
+                    labelText: 'Note',
+                    labelStyle: TextStyle(color: Colors.pink),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.pink, width: 2.0),
+                    )),
               ),
             ],
           ),
@@ -239,7 +240,12 @@ class _CalendarAppState extends State<CalendarApp> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Batal'),
+              child: Text(
+                'Batal',
+                style: TextStyle(
+                  color: Colors.pink,
+                ),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -261,6 +267,9 @@ class _CalendarAppState extends State<CalendarApp> {
                 }
               },
               child: Text('Simpan'),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.pink),
+              ),
             ),
           ],
         );
@@ -279,17 +288,34 @@ class _CalendarAppState extends State<CalendarApp> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit Catatan'),
+          title: Text(
+            'Edit Catatan',
+            style: TextStyle(color: Colors.pink),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: InputDecoration(labelText: 'Judul'),
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(
+                    labelText: 'Judul',
+                    labelStyle: TextStyle(
+                      color: Colors.pink,
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.pink, width: 2.0),
+                    )),
               ),
               TextField(
                 controller: noteController,
-                decoration: InputDecoration(labelText: 'Catatan'),
+                cursorColor: Colors.pink,
+                decoration: InputDecoration(
+                    labelText: 'Catatan',
+                    labelStyle: TextStyle(color: Colors.pink),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.pink, width: 2.0),
+                    )),
               ),
             ],
           ),

@@ -1,39 +1,75 @@
+import 'dart:convert';
+import 'dart:io';
+
+List<Anggota> anggotaFromJson(String str) =>
+    List<Anggota>.from(json.decode(str).map((x) => Anggota.fromJson(x)));
+
+String anggotaToJson(List<Anggota> data) =>
+    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+
 class Anggota {
-  final int id;
-  final String pokja;
-  final String jabatan;
   final String nama;
-  final bool hadir;
-  final bool? myBoolVariable; // Tambahkan field boolean opsional
+  final String jabatan;
+  final String pokja;
+  final File? image;
+  final bool status;
 
   Anggota({
-    required this.id,
-    required this.pokja,
-    required this.jabatan,
     required this.nama,
-    required this.hadir,
-    this.myBoolVariable, // Jadikan parameter opsional
+    required this.jabatan,
+    required this.pokja,
+    this.image,
+    this.status = true,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'pokja': pokja, // Tambahkan field pokja dan jabatan
-      'jabatan': jabatan,
       'nama': nama,
-      'hadir': hadir,
-      'myBoolVariable': myBoolVariable, // Simpan myBoolVariable jika tidak null
+      'jabatan': jabatan,
+      'pokja': pokja,
+      'image': image?.path, // Mengambil path gambar jika ada
+      'status': status,
     };
   }
 
   factory Anggota.fromMap(Map<String, dynamic> map) {
     return Anggota(
-      id: map['id'],
-      pokja: map['pokja'], // Ambil nilai dari Map sesuai dengan field yang sesuai
-      jabatan: map['jabatan'],
       nama: map['nama'],
-      hadir: map['hadir'],
-      myBoolVariable: map['myBoolVariable'], // Ambil myBoolVariable jika ada
+      jabatan: map['jabatan'],
+      pokja: map['pokja'],
+      image: map['image'] != null ? File(map['image']) : null,
+      status: map['status'],
     );
   }
+
+  factory Anggota.fromJson(Map<String, dynamic> json) => Anggota(
+        nama: json["nama"],
+        jabatan: json["jabatan"],
+        pokja: json["pokja"],
+        image: json["image"],
+        status: json["status"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "nama": nama,
+        "jabatan": jabatan,
+        "pokja": pokja,
+        "image": image,
+        "status": status,
+      };
 }
+
+// Variabel anggotaList dideklarasikan di luar kelas Anggota
+final List<Anggota> anggotaList = [
+  Anggota(
+    nama: 'KETUA: Nyonya Anggraini Pariadnyana',
+    jabatan: 'KETUA',
+    pokja: 'Pokja 1',
+  ),
+  Anggota(
+    nama: 'WAKIL KETUA: Kadek Ariantini',
+    jabatan: 'WAKIL KETUA',
+    pokja: 'Pokja 2',
+  ),
+  // Tambahkan anggota dan jabatan lainnya sesuai dengan struktur di atas
+];
